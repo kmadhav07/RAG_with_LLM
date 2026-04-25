@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E5-base-v2 Document Retrieval</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2d3748;
+            --primary-light: #4a5568;
+            --accent: #3182ce;
+            --accent-hover: #2b6cb0;
+            --bg: #f7f8fc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --text: #1a202c;
+            --text-secondary: #718096;
+            --success: #38a169;
+            --warning: #d69e2e;
+            --error: #e53e3e;
+            --radius: 8px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* ---- Header ---- */
+        .header {
+            background: var(--primary);
+            color: #fff;
+            padding: 28px 0;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .header p {
+            margin-top: 6px;
+            font-size: 0.95rem;
+            color: #cbd5e0;
+        }
+
+        /* ---- Container ---- */
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 32px 20px 60px;
+        }
+
+        /* ---- Mode toggle ---- */
+        .mode-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            margin-bottom: 28px;
+            padding: 16px;
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .mode-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+            cursor: pointer;
+        }
+
+        .mode-label.active {
+            color: var(--accent);
+        }
+
+        .toggle-track {
+            position: relative;
+            width: 48px;
+            height: 26px;
+            background: #cbd5e0;
+            border-radius: 13px;
+            cursor: pointer;
+            transition: background 0.25s;
+        }
+
+        .toggle-track.on {
+            background: var(--accent);
+        }
+
+        .toggle-thumb {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.25s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        }
+
+        .toggle-track.on .toggle-thumb {
+            transform: translateX(22px);
+        }
+
+        /* ---- Info bar ---- */
+        .info-bar {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .info-item {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .info-item strong {
+            color: var(--text);
+        }
+
+        /* ---- Card ---- */
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+
+        .card-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 18px;
+            color: var(--primary);
+        }
+
+        /* ---- Form elements ---- */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.88rem;
+            margin-bottom: 6px;
+            color: var(--primary-light);
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: border-color 0.2s;
+            background: #fff;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(49,130,206,0.12);
+        }
+
+        /* ---- File upload ---- */
+        .file-drop {
+            border: 2px dashed #a0aec0;
+            border-radius: var(--radius);
+            padding: 38px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f8fafc;
+            margin-top: 8px;
+        }
+
+        .file-drop:hover,
+        .file-drop.drag-over {
+            border-color: var(--accent);
+            background: #ebf4ff;
+            box-shadow: 0 4px 6px rgba(49,130,206,0.1);
+        }
+
+        .file-drop-text {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .file-drop-text strong {
+            color: var(--accent);
+            cursor: pointer;
+        }
+
+        .file-count {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        /* ---- Buttons ---- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            box-shadow: 0 4px 12px rgba(49,130,206,0.25);
+        }
+
+        .btn-primary:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: #edf2f7;
+            color: var(--primary-light);
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .btn-row .btn {
+            flex: 1;
+        }
+
+        .or-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .or-divider::before,
+        .or-divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* ---- Loading ---- */
+        .loading-overlay {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 14px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* ---- Error ---- */
+        .error-box {
+            display: none;
+            background: #fff5f5;
+            border-left: 4px solid var(--error);
+            padding: 14px 18px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: var(--error);
+        }
+
+        /* ---- Results ---- */
+        .results-section {
+            display: none;
+        }
+
+        .results-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .results-header h2 {
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
+        .results-header span {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* ---- Gemini summary ---- */
+        .gemini-summary {
+            display: none;
+            background: #f0f7ff;
+            border-left: 4px solid var(--accent);
+            padding: 18px 20px;
+            border-radius: var(--radius);
+            margin-bottom: 24px;
+            line-height: 1.7;
+            font-size: 0.92rem;
+            white-space: pre-wrap;
+        }
+
+        .gemini-summary-title {
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+
+        /* ---- Result card ---- */
+        .result-card {
+            background: var(--card);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px;
+            margin-bottom: 16px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .result-card:hover {
+            border-color: var(--accent);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .result-rank {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .rank-1 { background: #d69e2e; }
+        .rank-2 { background: #a0aec0; }
+        .rank-3 { background: #b7791f; }
+        .rank-4 { background: #718096; }
+        .rank-5 { background: #718096; }
+
+        .result-filename {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .result-filename a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+
+        .result-filename a:hover {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+
+        .similarity-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .similarity-label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .similarity-bar {
+            flex: 1;
+            height: 8px;
+            background: #edf2f7;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .similarity-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+
+        .similarity-value {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent);
+            white-space: nowrap;
+        }
+
+        .result-preview {
+            background: #f7f8fc;
+            padding: 14px;
+            border-radius: var(--radius);
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            line-height: 1.65;
+            max-height: 130px;
+            overflow-y: auto;
+        }
+
+        .preview-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        /* ---- Chat ---- */
+        .chat-section {
+            display: none;
+            margin-top: 28px;
+        }
+
+        .chat-card {
+            background: var(--card);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+        }
+
+        .chat-card-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--primary);
+        }
+
+        .chat-messages {
+            max-height: 350px;
+            overflow-y: auto;
+            margin-bottom: 14px;
+            padding: 10px;
+            background: var(--bg);
+            border-radius: var(--radius);
+        }
+
+        .chat-msg {
+            padding: 12px 14px;
+            border-radius: var(--radius);
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            line-height: 1.65;
+        }
+
+        .chat-msg-user {
+            background: #ebf4ff;
+            border-left: 3px solid var(--accent);
+        }
+
+        .chat-msg-ai {
+            background: #f0faf4;
+            border-left: 3px solid var(--success);
+        }
+
+        .chat-msg-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .chat-msg-user .chat-msg-label { color: var(--accent); }
+        .chat-msg-ai .chat-msg-label   { color: var(--success); }
+
+        .chat-msg-body {
+            white-space: pre-wrap;
+        }
+
+        .chat-input-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 11px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-size: 0.92rem;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn-send {
+            padding: 11px 22px;
+            background: var(--success);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-send:hover { background: #2f855a; }
+        .btn-send:disabled { background: #a0aec0; cursor: not-allowed; }
+
+        .chat-loading {
+            display: none;
+            text-align: center;
+            padding: 8px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .chat-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border);
+            border-top-color: var(--success);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        /* ---- Default docs selector ---- */
+        .default-docs-panel {
+            display: none;
+            margin-top: 12px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            background: #fafbfe;
+        }
+
+        .default-docs-panel.open {
+            display: block;
+        }
+
+        .default-docs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .default-docs-header span {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--primary-light);
+        }
+
+        .select-all-link {
+            font-size: 0.82rem;
+            color: var(--accent);
+            cursor: pointer;
+            font-weight: 500;
+            border: none;
+            background: none;
+            padding: 0;
+        }
+
+        .select-all-link:hover {
+            text-decoration: underline;
+        }
+
+        .default-doc-list {
+            list-style: none;
+            padding: 0;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+
+        .default-doc-list li {
+            display: flex;
+            align-items: center;
+            padding: 8px 10px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.88rem;
+            color: var(--text);
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.15s;
+        }
+
+        .default-doc-list li:last-child {
+            border-bottom: none;
+        }
+
+        .default-doc-list li:hover {
+            background: #eef4fd;
+        }
+
+        .default-doc-list li input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            margin-right: 10px;
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+
+        .default-doc-count {
+            margin-top: 10px;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* ---- Footer / Pipeline ---- */
+        .footer {
+            margin-top: 48px;
+            padding-top: 28px;
+            border-top: 1px solid var(--border);
+            /* Break out of the 960px container to use full viewport */
+            margin-left: -20px;
+            margin-right: -20px;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+
+        .footer-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .pipeline {
+            display: flex;
+            align-items: stretch;
+            gap: 0;
+            width: 100%;
+            flex-wrap: wrap;         /* wrap on very small screens */
+            justify-content: center;
+        }
+
+        .pipe-block {
+            flex: 1 1 100px;
+            min-width: 100px;
+            padding: 14px 8px;
+            border-radius: 8px;
+            text-align: center;
+            color: #fff;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .pipe-block-title {
+            font-weight: 700;
+            font-size: 0.78rem;
+            letter-spacing: 0.01em;
+            word-break: break-word;
+        }
+
+        .pipe-block-desc {
+            font-size: 0.68rem;
+            opacity: 0.9;
+            line-height: 1.3;
+        }
+
+        .pipe-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            min-width: 18px;
+            flex-shrink: 0;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 700;
+            user-select: none;
+        }
+
+        .pb-input    { background: linear-gradient(135deg, #667eea, #5a67d8); }
+        .pb-tokenize { background: linear-gradient(135deg, #ed8936, #dd6b20); }
+        .pb-embed    { background: linear-gradient(135deg, #38b2ac, #2c7a7b); }
+        .pb-cosine   { background: linear-gradient(135deg, #9f7aea, #805ad5); }
+        .pb-rank     { background: linear-gradient(135deg, #48bb78, #2f855a); }
+        .pb-gemini   { background: linear-gradient(135deg, #4299e1, #3182ce); }
+
+        /* ---- Know More panel ---- */
+        .know-more-btn {
+            display: block;
+            margin: 28px auto 0;
+            padding: 10px 28px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .know-more-btn:hover {
+            background: var(--primary-light);
+        }
+
+        .know-more-btn:active {
+            transform: scale(0.98);
+        }
+
+        .know-more-panel {
+            display: none;
+            margin-top: 24px;
+            background: var(--card);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+            line-height: 1.7;
+        }
+
+        .know-more-panel.open {
+            display: block;
+        }
+
+        .km-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .km-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .km-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+
+        .km-card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .km-card-title::before {
+            content: '';
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .km-card-1::before { background: #ed8936; }
+        .km-card-2::before { background: #38b2ac; }
+        .km-card-3::before { background: #4299e1; }
+
+        .km-card-text {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .km-card-text strong {
+            color: var(--text);
+        }
+
+        .km-abstract-box {
+            background: #f8fafc;
+            border-left: 4px solid var(--accent);
+            padding: 16px;
+            margin-bottom: 24px;
+            border-radius: 0 var(--radius) var(--radius) 0;
+            font-size: 0.95rem;
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        /* ---- Responsive ---- */
+        @media (max-width: 640px) {
+            .container { padding: 16px 12px 40px; }
+            .header h1 { font-size: 1.35rem; }
+            .btn-row { flex-direction: column; }
+            .pipeline { flex-direction: column; align-items: center; }
+            .pipe-arrow { transform: rotate(90deg); width: auto; min-width: auto; height: 24px; }
+            .pipe-block { min-width: 220px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>E5-base-v2 Document Retrieval</h1>
+    <p>Introducing RAG with E5</p>
+</div>
+
+<div class="container">
+
+    <!-- Mode toggle -->
+    <div class="mode-bar">
+        <span class="mode-label active" id="modeOff">Without Gemini</span>
+        <div class="toggle-track" id="geminiToggle" onclick="toggleGemini()">
+            <div class="toggle-thumb"></div>
+        </div>
+        <span class="mode-label" id="modeOn">With Gemini</span>
+    </div>
+
+    <!-- Info -->
+    <div class="info-bar">
+        <div class="info-item"><strong>Model:</strong> intfloat/e5-base-v2</div>
+        <div class="info-item"><strong>Max tokens:</strong> 512 per document</div>
+    </div>
+
+    <!-- Upload card -->
+    <div class="card">
+        <div class="card-title">Search Documents</div>
+
+        <div class="form-group">
+            <label for="queryInput">Search Query</label>
+            <input type="text" id="queryInput" placeholder="Enter your search query..."
+                   value="{{ default_query }}">
+        </div>
+
+        <!-- Document source toggle -->
+        <div class="mode-bar" style="margin-bottom: 20px;">
+            <span class="mode-label active" id="docModeDefault">Default Documents</span>
+            <div class="toggle-track" id="docSourceToggle" onclick="toggleDocSource()">
+                <div class="toggle-thumb"></div>
+            </div>
+            <span class="mode-label" id="docModeUpload">Upload Your Own</span>
+        </div>
+
+        <!-- Default docs panel (visible by default) -->
+        <div id="defaultDocsSection">
+            <div class="default-docs-panel open" id="defaultDocsPanel">
+                <div class="default-docs-header">
+                    <span>Select documents to use</span>
+                    <button class="select-all-link" onclick="toggleSelectAll()">Select All</button>
+                </div>
+                <ul class="default-doc-list" id="defaultDocList"></ul>
+                <div class="default-doc-count" id="defaultDocCount">0 documents selected</div>
+            </div>
+        </div>
+
+        <!-- Upload panel (hidden by default) -->
+        <div id="uploadDocsSection" style="display: none;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Upload PDF Documents</label>
+                <div class="file-drop" id="fileDrop" onclick="document.getElementById('pdfFiles').click()">
+                    <input type="file" id="pdfFiles" multiple accept=".pdf">
+                    <div class="file-drop-text">
+                        <strong>Click to browse</strong> or drag and drop PDF files here
+                    </div>
+                    <div class="file-count" id="fileCount">No files selected</div>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn btn-primary" id="submitBtn" onclick="analyseDocuments()" style="margin-top: 20px;">
+            Analyse Documents
+        </button>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-overlay" id="loading">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loadingText">Analysing documents...</div>
+    </div>
+
+    <!-- Error -->
+    <div class="error-box" id="errorBox"></div>
+
+    <!-- Results -->
+    <div class="results-section" id="resultsSection">
+        <div class="results-header">
+            <h2>Top Matching Documents</h2>
+            <span id="resultsMeta"></span>
+        </div>
+
+        <div id="resultsContainer"></div>
+
+        <!-- Gemini Summary -->
+        <div class="gemini-summary" id="geminiSummary">
+            <div class="gemini-summary-title">Gemini Analysis</div>
+            <div id="geminiSummaryText"></div>
+        </div>
+
+        <!-- Chat -->
+        <div class="chat-section" id="chatSection">
+            <div class="chat-card">
+                <div class="chat-card-title">Follow-up Questions (Gemini)</div>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="chat-msg chat-msg-ai">
+                        <div class="chat-msg-label">Gemini</div>
+                        <div class="chat-msg-body">I have analysed the documents above. You can ask me follow-up questions about them.</div>
+                    </div>
+                </div>
+                <div class="chat-loading" id="chatLoading">
+                    <span class="chat-spinner"></span> Generating response...
+                </div>
+                <div class="chat-input-row">
+                    <input type="text" class="chat-input" id="chatInput"
+                           placeholder="Ask a follow-up question..."
+                           onkeydown="if(event.key==='Enter') sendChat()">
+                    <button class="btn-send" id="chatSendBtn" onclick="sendChat()">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div class="footer-title">How It Works — RAG Pipeline</div>
+        <div class="pipeline">
+            <div class="pipe-block pb-input">
+                <div class="pipe-block-title">PDF Input</div>
+                <div class="pipe-block-desc">Upload or select documents</div>
+            </div>
+            <div class="pipe-arrow">&#10140;</div>
+            <div class="pipe-block pb-tokenize">
+                <div class="pipe-block-title">E5 Tokenizer</div>
+                <div class="pipe-block-desc">First 512 tokens extracted per document</div>
+            </div>
+            <div class="pipe-arrow">&#10140;</div>
+            <div class="pipe-block pb-embed">
+                <div class="pipe-block-title">E5 Embeddings</div>
+                <div class="pipe-block-desc">768-dim vectors via transformer encoder</div>
+            </div>
+            <div class="pipe-arrow">&#10140;</div>
+            <div class="pipe-block pb-cosine">
+                <div class="pipe-block-title">Cosine Similarity</div>
+                <div class="pipe-block-desc">Query vs document vector angle (0 to 1)</div>
+            </div>
+            <div class="pipe-arrow">&#10140;</div>
+            <div class="pipe-block pb-rank">
+                <div class="pipe-block-title">Ranking</div>
+                <div class="pipe-block-desc">Top 5 documents by similarity score</div>
+            </div>
+            <div class="pipe-arrow">&#10140;</div>
+            <div class="pipe-block pb-gemini">
+                <div class="pipe-block-title">Gemini (optional)</div>
+                <div class="pipe-block-desc">AI analysis and follow-up chat</div>
+            </div>
+        </div>
+
+        <!-- Know More button -->
+        <button class="know-more-btn" onclick="toggleKnowMore()">Know More</button>
+
+        <!-- Know More expandable panel -->
+        <div class="know-more-panel" id="knowMorePanel">
+
+            <div class="km-abstract-box">
+                <strong>The RAG Abstraction:</strong> Big AI systems (like ChatGPT or Copilot) don't memorize everything. Instead, they use a two-step framework called <em>Retrieval-Augmented Generation</em> to answer questions accurately and avoid hallucinating facts. Here is how we built it locally.
+            </div>
+
+            <div class="km-grid">
+                <div class="km-card">
+                    <div class="km-card-title km-card-1">1. Embed & Retrieve</div>
+                    <div class="km-card-text">
+                        We turn text into numbers. The <strong>E5 model</strong> converts your query and PDFs into 768-dimensional vectors (embeddings). We then calculate the <strong>Cosine Similarity</strong>—the angle between these vectors—to pull the absolute top 5 contextual matches.
+                    </div>
+                </div>
+                
+                <div class="km-card">
+                    <div class="km-card-title km-card-2">2. Augment & Generate</div>
+                    <div class="km-card-text">
+                        The retrieved text isn't just shown to you; it's fed to <strong>Gemini</strong> as direct evidence. By grounding the LLM with this specific context, it generates highly accurate answers based <em>only</em> on your documents, identical to how enterprise AI operates.
+                    </div>
+                </div>
+
+                <div class="km-card">
+                    <div class="km-card-title km-card-3">3. The Tech Stack</div>
+                    <div class="km-card-text">
+                        Built with a <strong>Flask API</strong> serving a pure vanilla <strong>JavaScript/CSS</strong> frontend, avoiding heavy frameworks. 
+                        It includes a robust backend mechanism that automatically fails-over across 4 different Gemini API keys and models to guarantee uptime.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// State
+// ---------------------------------------------------------------------------
+let useGemini = false;
+let useUpload = false;   // false = default docs, true = upload your own
+let chatContext = '';
+
+const queryInput     = document.getElementById('queryInput');
+const fileInput      = document.getElementById('pdfFiles');
+const fileCount      = document.getElementById('fileCount');
+const submitBtn      = document.getElementById('submitBtn');
+const loading        = document.getElementById('loading');
+const loadingText    = document.getElementById('loadingText');
+const errorBox       = document.getElementById('errorBox');
+const resultsSection = document.getElementById('resultsSection');
+const resultsContainer = document.getElementById('resultsContainer');
+const resultsMeta    = document.getElementById('resultsMeta');
+const geminiSummary  = document.getElementById('geminiSummary');
+const geminiSummaryText = document.getElementById('geminiSummaryText');
+const chatSection    = document.getElementById('chatSection');
+const chatMessages   = document.getElementById('chatMessages');
+const chatInput      = document.getElementById('chatInput');
+const chatSendBtn    = document.getElementById('chatSendBtn');
+const chatLoading    = document.getElementById('chatLoading');
+
+// ---------------------------------------------------------------------------
+// Gemini toggle
+// ---------------------------------------------------------------------------
+function toggleGemini() {
+    useGemini = !useGemini;
+    document.getElementById('geminiToggle').classList.toggle('on', useGemini);
+    document.getElementById('modeOn').classList.toggle('active', useGemini);
+    document.getElementById('modeOff').classList.toggle('active', !useGemini);
+}
+
+// ---------------------------------------------------------------------------
+// Document source toggle
+// ---------------------------------------------------------------------------
+function toggleDocSource() {
+    useUpload = !useUpload;
+    document.getElementById('docSourceToggle').classList.toggle('on', useUpload);
+    document.getElementById('docModeUpload').classList.toggle('active', useUpload);
+    document.getElementById('docModeDefault').classList.toggle('active', !useUpload);
+    document.getElementById('defaultDocsSection').style.display = useUpload ? 'none' : 'block';
+    document.getElementById('uploadDocsSection').style.display = useUpload ? 'block' : 'none';
+}
+
+// ---------------------------------------------------------------------------
+// File input
+// ---------------------------------------------------------------------------
+fileInput.addEventListener('change', function () {
+    const n = this.files.length;
+    fileCount.textContent = n === 0 ? 'No files selected' : n + ' file' + (n > 1 ? 's' : '') + ' selected';
+});
+
+// Drag-and-drop
+const fileDrop = document.getElementById('fileDrop');
+['dragenter', 'dragover'].forEach(evt =>
+    fileDrop.addEventListener(evt, e => { e.preventDefault(); fileDrop.classList.add('drag-over'); }));
+['dragleave', 'drop'].forEach(evt =>
+    fileDrop.addEventListener(evt, e => { e.preventDefault(); fileDrop.classList.remove('drag-over'); }));
+fileDrop.addEventListener('drop', e => {
+    fileInput.files = e.dataTransfer.files;
+    fileInput.dispatchEvent(new Event('change'));
+});
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+function showError(msg) {
+    errorBox.textContent = msg;
+    errorBox.style.display = 'block';
+}
+
+function hideError() {
+    errorBox.style.display = 'none';
+}
+
+function setLoading(show, text) {
+    loading.style.display = show ? 'block' : 'none';
+    if (text) loadingText.textContent = text;
+    submitBtn.disabled = show;
+}
+
+// ---------------------------------------------------------------------------
+// Render results
+// ---------------------------------------------------------------------------
+function renderResults(data) {
+    resultsContainer.innerHTML = '';
+    resultsMeta.textContent = data.total_documents + ' document' + (data.total_documents > 1 ? 's' : '') + ' processed';
+
+    // Gemini summary
+    if (data.gemini_summary) {
+        geminiSummaryText.textContent = data.gemini_summary;
+        geminiSummary.style.display = 'block';
+    } else {
+        geminiSummary.style.display = 'none';
+    }
+
+    // Document cards
+    const src = data.source || 'default';
+    data.top_documents.forEach((doc, i) => {
+        const rank = i + 1;
+        const pct = (doc.similarity * 100).toFixed(1);
+        const card = document.createElement('div');
+        card.className = 'result-card';
+        card.innerHTML = `
+            <span class="result-rank rank-${rank}">Rank ${rank}</span>
+            <div class="result-filename">
+                <a href="/serve-pdf/${encodeURIComponent(src)}/${encodeURIComponent(doc.filename)}" target="_blank" title="Click to open PDF">
+                    &#128196; ${doc.filename}
+                </a>
+            </div>
+            <div class="similarity-row">
+                <span class="similarity-label">Similarity</span>
+                <div class="similarity-bar"><div class="similarity-fill" style="width:${pct}%"></div></div>
+                <span class="similarity-value">${pct}%</span>
+            </div>
+            <div class="preview-label">Preview</div>
+            <div class="result-preview">${escapeHtml(doc.preview)}</div>
+        `;
+        resultsContainer.appendChild(card);
+    });
+
+    // Chat section — show whenever Gemini is enabled
+    if (data.gemini_enabled) {
+        chatContext = data.chat_context || '';
+        chatSection.style.display = 'block';
+    } else {
+        chatSection.style.display = 'none';
+    }
+
+    resultsSection.style.display = 'block';
+    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// ---------------------------------------------------------------------------
+// Default documents panel
+// ---------------------------------------------------------------------------
+let defaultFileList = [];
+let allSelected = false;
+
+async function loadDefaultFileList() {
+    try {
+        const resp = await fetch('/list-defaults');
+        const data = await resp.json();
+        if (data.error) return;
+        defaultFileList = data.files;
+        renderDefaultDocList();
+    } catch (err) {
+        console.error('Failed to load default file list:', err);
+    }
+}
+
+function renderDefaultDocList() {
+    const list = document.getElementById('defaultDocList');
+    list.innerHTML = '';
+    defaultFileList.forEach((name, idx) => {
+        const li = document.createElement('li');
+        li.onclick = function(e) {
+            if (e.target.tagName !== 'INPUT') {
+                const cb = li.querySelector('input');
+                cb.checked = !cb.checked;
+            }
+            updateDefaultCount();
+        };
+        li.innerHTML = `<input type="checkbox" id="defDoc${idx}"> ${escapeHtml(name)}`;
+        list.appendChild(li);
+    });
+    updateDefaultCount();
+}
+
+function toggleSelectAll() {
+    allSelected = !allSelected;
+    const checkboxes = document.querySelectorAll('#defaultDocList input[type="checkbox"]');
+    checkboxes.forEach(cb => cb.checked = allSelected);
+    document.querySelector('.select-all-link').textContent = allSelected ? 'Deselect All' : 'Select All';
+    updateDefaultCount();
+}
+
+function updateDefaultCount() {
+    const checked = document.querySelectorAll('#defaultDocList input[type="checkbox"]:checked').length;
+    document.getElementById('defaultDocCount').textContent = checked + ' document' + (checked !== 1 ? 's' : '') + ' selected';
+}
+
+function getSelectedDefaultFiles() {
+    const selected = [];
+    const checkboxes = document.querySelectorAll('#defaultDocList input[type="checkbox"]');
+    checkboxes.forEach((cb, idx) => {
+        if (cb.checked) selected.push(defaultFileList[idx]);
+    });
+    return selected;
+}
+
+// ---------------------------------------------------------------------------
+// Unified analyse button
+// ---------------------------------------------------------------------------
+async function analyseDocuments() {
+    hideError();
+    const query = queryInput.value.trim();
+
+    if (!query) { showError('Please enter a search query.'); return; }
+
+    if (useUpload) {
+        // Upload mode
+        const files = fileInput.files;
+        if (!files || files.length === 0) { showError('Please select at least one PDF file.'); return; }
+
+        setLoading(true, 'Uploading and analysing ' + files.length + ' document' + (files.length > 1 ? 's' : '') + '...');
+        resultsSection.style.display = 'none';
+
+        const formData = new FormData();
+        formData.append('query', query);
+        formData.append('use_gemini', useGemini);
+        for (const f of files) formData.append('pdfs', f);
+
+        try {
+            const resp = await fetch('/upload', { method: 'POST', body: formData });
+            const data = await resp.json();
+            setLoading(false);
+            if (data.error) { showError(data.error); return; }
+            renderResults(data);
+        } catch (err) {
+            setLoading(false);
+            showError('Network error: ' + err.message);
+        }
+    } else {
+        // Default docs mode
+        const selected = getSelectedDefaultFiles();
+        if (selected.length === 0) { showError('Please select at least one default document.'); return; }
+
+        setLoading(true, 'Analysing ' + selected.length + ' document' + (selected.length > 1 ? 's' : '') + '...');
+        resultsSection.style.display = 'none';
+
+        try {
+            const resp = await fetch('/load-defaults', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: query, use_gemini: useGemini, selected_files: selected }),
+            });
+            const data = await resp.json();
+            setLoading(false);
+            if (data.error) { showError(data.error); return; }
+            renderResults(data);
+        } catch (err) {
+            setLoading(false);
+            showError('Network error: ' + err.message);
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Chat
+// ---------------------------------------------------------------------------
+async function sendChat() {
+    const question = chatInput.value.trim();
+    if (!question) return;
+
+    appendChatMsg('You', question, 'user');
+    chatInput.value = '';
+    chatSendBtn.disabled = true;
+    chatLoading.style.display = 'block';
+
+    try {
+        const resp = await fetch('/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question, context: chatContext }),
+        });
+        const data = await resp.json();
+        chatLoading.style.display = 'none';
+        chatSendBtn.disabled = false;
+        if (data.error) { appendChatMsg('Error', data.error, 'ai'); return; }
+        appendChatMsg('Gemini', data.answer, 'ai');
+    } catch (err) {
+        chatLoading.style.display = 'none';
+        chatSendBtn.disabled = false;
+        appendChatMsg('Error', 'Network error: ' + err.message, 'ai');
+    }
+}
+
+function appendChatMsg(label, text, type) {
+    const div = document.createElement('div');
+    div.className = 'chat-msg chat-msg-' + type;
+    div.innerHTML = `<div class="chat-msg-label">${escapeHtml(label)}</div><div class="chat-msg-body">${escapeHtml(text)}</div>`;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// ---------------------------------------------------------------------------
+// Know More toggle
+// ---------------------------------------------------------------------------
+function toggleKnowMore() {
+    const panel = document.getElementById('knowMorePanel');
+    const btn = document.querySelector('.know-more-btn');
+    panel.classList.toggle('open');
+    btn.textContent = panel.classList.contains('open') ? 'Show Less' : 'Know More';
+}
+
+// ---------------------------------------------------------------------------
+// Init: load default file list on page load
+// ---------------------------------------------------------------------------
+loadDefaultFileList();
+</script>
+</body>
+</html>
+
